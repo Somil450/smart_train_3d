@@ -18,7 +18,7 @@ class MockAIRepository implements AIRepository {
       timestamp: DateTime.now(),
       trainId: trainId,
       status: AnomalyStatus.anomalous,
-      anomalyScore: 78.4,
+      anomalyScore: 82.0,
     );
   }
 
@@ -27,13 +27,17 @@ class MockAIRepository implements AIRepository {
     return FaultPrediction(
       timestamp: DateTime.now(),
       trainId: trainId,
-      primaryFault: 'Bearing Outer Race Defect',
+      primaryFault: 'BEARING_FAULT',
       localizedComponentId: AppConstants.compBearing06,
+      faultTypeEnum: FaultTypeEnum.BEARING_FAULT,
+      faultLocationEnum: FaultLocationEnum.REAR_BOGIE_AXLE_2,
       probabilities: [
-        FaultProbability(faultType: 'Bearing Fault', confidence: 0.87),
-        FaultProbability(faultType: 'Wheel Fault', confidence: 0.06),
-        FaultProbability(faultType: 'Motor Fault', confidence: 0.04),
-        FaultProbability(faultType: 'Axle Misalignment', confidence: 0.03),
+        FaultProbability(faultType: 'BEARING_FAULT', confidence: 0.98),
+        FaultProbability(faultType: 'WHEEL_FLAT', confidence: 0.01),
+        FaultProbability(faultType: 'MOTOR_FAULT', confidence: 0.005),
+        FaultProbability(faultType: 'AXLE_MISALIGNMENT', confidence: 0.003),
+        FaultProbability(faultType: 'BRAKE_ABNORMAL', confidence: 0.001),
+        FaultProbability(faultType: 'SUSPENSION_FAULT', confidence: 0.001),
       ],
     );
   }
@@ -41,14 +45,14 @@ class MockAIRepository implements AIRepository {
   @override
   Future<AIExplanation> getAIExplanation(String trainId, String faultType) async {
     return AIExplanation(
-      summary: 'Automated signal analysis isolated high-frequency impact harmonics on Bogie 3 Axle 6.',
-      confidence: 0.87,
-      primarySignal: 'Bogie 3 Z-Axis Vibration & Journal Bearing Temp',
+      summary: 'XGBoost Multiclass isolated BEARING_FAULT on REAR_BOGIE_AXLE_2 (Bogie 3 Axle 6 Bearing).',
+      confidence: 0.98,
+      primarySignal: 'imu_z & bearing_temperature',
       evidence: [
-        EvidenceItem(description: 'Vibration envelope increased by 320%', changePercentage: '+320%', significance: 'High Impact'),
-        EvidenceItem(description: 'Bearing temperature increased by 18°C above baseline', changePercentage: '+47%', significance: 'Thermal Spike'),
-        EvidenceItem(description: 'RPM micro-instability detected', changePercentage: '+3.4%', significance: 'Kinematic Irregularity'),
-        EvidenceItem(description: 'Motor current draw increased by 14%', changePercentage: '+14%', significance: 'Drag Load'),
+        EvidenceItem(description: 'Isolation Forest Anomaly Score elevated (0.82)', changePercentage: '+0.82', significance: 'Critical Anomaly'),
+        EvidenceItem(description: 'IMU Z-Axis Vibration RMS spike (2.15g)', changePercentage: '+320%', significance: 'High Impact'),
+        EvidenceItem(description: 'Bearing temperature rising (+0.42°C/s)', changePercentage: '+14.2°C', significance: 'Thermal Spike'),
+        EvidenceItem(description: 'Motor Current INA219 elevated (12.8A)', changePercentage: '+14%', significance: 'Electrical Drag'),
       ],
     );
   }
@@ -56,7 +60,7 @@ class MockAIRepository implements AIRepository {
   @override
   Future<DegradationResult> getDegradation(String trainId, String componentId) async {
     final name = componentId == AppConstants.compBearing06
-        ? 'Bogie 3 Axle 6 Journal Bearing'
+        ? 'REAR_BOGIE_AXLE_2 Journal Bearing'
         : 'Component $componentId';
     return DegradationResult(
       componentId: componentId,
@@ -68,7 +72,7 @@ class MockAIRepository implements AIRepository {
       prediction: componentId == AppConstants.compBearing06
           ? 'Estimated remaining useful life (RUL): 48 operating hours.'
           : 'Estimated remaining useful life (RUL): > 2500 operating hours.',
-      confidence: 0.89,
+      confidence: 0.98,
     );
   }
 }

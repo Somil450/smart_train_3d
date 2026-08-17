@@ -17,22 +17,13 @@ class MockSensorRepository implements SensorRepository {
       double val = 0.0;
 
       switch (sensorType) {
-        case SensorType.imu1X:
+        case SensorType.imuX:
           val = 0.12 + ((i % 3) * 0.01);
           break;
-        case SensorType.imu1Y:
+        case SensorType.imuY:
           val = 0.08 + ((i % 2) * 0.01);
           break;
-        case SensorType.imu1Z:
-          val = 0.98 + ((i % 4) * 0.02);
-          break;
-        case SensorType.imu2X:
-          val = 0.15 + ((i % 5) * 0.02);
-          break;
-        case SensorType.imu2Y:
-          val = 0.10 + ((i % 3) * 0.01);
-          break;
-        case SensorType.imu2Z:
+        case SensorType.imuZ:
           val = 1.02 + (points - i) * 0.015 + ((i % 7) * 0.1);
           break;
         case SensorType.motorTemp:
@@ -53,12 +44,6 @@ class MockSensorRepository implements SensorRepository {
         case SensorType.loadWeight:
           val = 450.0 + ((i % 13) * 2.0);
           break;
-        case SensorType.ambientTemp:
-          val = 26.0 + ((i % 2) * 0.2);
-          break;
-        case SensorType.humidity:
-          val = 55.0 + (i % 3);
-          break;
       }
 
       results.add(
@@ -77,39 +62,29 @@ class MockSensorRepository implements SensorRepository {
 
   String _getComponentId(SensorType type) {
     switch (type) {
-      case SensorType.imu1X:
-      case SensorType.imu1Y:
-      case SensorType.imu1Z:
+      case SensorType.imuX:
+      case SensorType.imuY:
       case SensorType.motorTemp:
       case SensorType.voltage:
       case SensorType.current:
       case SensorType.rpm:
         return 'MOTOR_01';
-      case SensorType.imu2X:
-      case SensorType.imu2Y:
-      case SensorType.imu2Z:
+      case SensorType.imuZ:
       case SensorType.bearingBogieTemp:
         return 'BEARING_06';
       case SensorType.loadWeight:
-        return 'BODY_MAIN';
-      case SensorType.ambientTemp:
-      case SensorType.humidity:
         return 'BODY_MAIN';
     }
   }
 
   String _getUnit(SensorType type) {
     switch (type) {
-      case SensorType.imu1X:
-      case SensorType.imu1Y:
-      case SensorType.imu1Z:
-      case SensorType.imu2X:
-      case SensorType.imu2Y:
-      case SensorType.imu2Z:
+      case SensorType.imuX:
+      case SensorType.imuY:
+      case SensorType.imuZ:
         return 'g';
       case SensorType.motorTemp:
       case SensorType.bearingBogieTemp:
-      case SensorType.ambientTemp:
         return '°C';
       case SensorType.voltage:
         return 'V';
@@ -117,8 +92,6 @@ class MockSensorRepository implements SensorRepository {
         return 'A';
       case SensorType.rpm:
         return 'RPM';
-      case SensorType.humidity:
-        return '%';
       case SensorType.loadWeight:
         return 'kg';
     }
@@ -129,23 +102,15 @@ class MockSensorRepository implements SensorRepository {
     return TelemetrySnapshot(
       timestamp: DateTime.now(),
       trainId: trainId,
-      imu1X: 0.12,
-      imu1Y: 0.08,
-      imu1Z: 0.98,
-      imu2X: 0.15,
-      imu2Y: 0.10,
-      imu2Z: 4.8,
+      imuX: 0.15,
+      imuY: 0.10,
+      imuZ: 4.8,
       motorTemp: 44.2,
       bearingBogieTemp: 62.5,
       rpm: 1452.0,
       voltage: 221.5,
       current: 12.8,
       loadWeight: 452.0,
-      ambientTemp: 26.5,
-      humidity: 56.0,
-      irDetection: true,
-      gpsAvailable: true,
-      gpsPosition: '12.9716° N, 77.5946° E',
     );
   }
 }

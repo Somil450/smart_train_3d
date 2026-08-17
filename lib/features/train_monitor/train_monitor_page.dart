@@ -97,90 +97,67 @@ class _TrainMonitorPageState extends State<TrainMonitorPage> {
           ),
           const SizedBox(height: 16),
 
-          // 6 Strict Sensor Category Cards
+                    // 4 Dataset Sensor Category Cards (AumAhuja Dataset Channel Specification)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. MOTOR GROUP
+              // 1. IMU 3D VIBRATION TENSOR
               Expanded(
                 child: _buildTelemetryGroupCard(
                   context,
-                  title: '1. MOTOR (IMU #1, DS18B20 #1, INA219, REED)',
-                  icon: Icons.electric_bolt,
-                  iconColor: Colors.amber.shade800,
+                  title: '1. IMU TENSOR (imu_x, imu_y, imu_z)',
+                  icon: Icons.vibration,
+                  iconColor: Colors.purple,
                   metrics: [
-                    _Metric('IMU #1 Accel X', '${Formatters.formatDouble(snap?.imu1X ?? 0)} g'),
-                    _Metric('IMU #1 Accel Y', '${Formatters.formatDouble(snap?.imu1Y ?? 0)} g'),
-                    _Metric('IMU #1 Accel Z', '${Formatters.formatDouble(snap?.imu1Z ?? 0)} g'),
+                    _Metric('IMU Vibration X (imu_x)', '${Formatters.formatDouble(snap?.imuX ?? 0)} g'),
+                    _Metric('IMU Vibration Y (imu_y)', '${Formatters.formatDouble(snap?.imuY ?? 0)} g'),
+                    _Metric('IMU Vibration Z (imu_z)', '${Formatters.formatDouble(snap?.imuZ ?? 0)} g'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // 2. DUAL DS18B20 THERMALS
+              Expanded(
+                child: _buildTelemetryGroupCard(
+                  context,
+                  title: '2. THERMAL (motor_temp, bearing_temp)',
+                  icon: Icons.thermostat,
+                  iconColor: Colors.orange.shade800,
+                  metrics: [
                     _Metric('Motor Temp (DS18B20 #1)', '${Formatters.formatDouble(snap?.motorTemp ?? 0)} °C'),
+                    _Metric('Bearing Temp (DS18B20 #2)', '${Formatters.formatDouble(snap?.bearingBogieTemp ?? 0)} °C'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // 3. INA219 ELECTRICAL & REED SPEED
+              Expanded(
+                child: _buildTelemetryGroupCard(
+                  context,
+                  title: '3. ELECTRICAL & SPEED (voltage, current, power, rpm)',
+                  icon: Icons.electric_bolt,
+                  iconColor: Colors.amber.shade900,
+                  metrics: [
                     _Metric('Voltage (INA219)', '${Formatters.formatDouble(snap?.voltage ?? 0)} V'),
                     _Metric('Current (INA219)', '${Formatters.formatDouble(snap?.current ?? 0)} A'),
                     _Metric('Power (V × I)', '${Formatters.formatDouble((snap?.voltage ?? 0) * (snap?.current ?? 0))} W'),
-                    _Metric('RPM (Reed Switch)', '${Formatters.formatDouble(snap?.rpm ?? 0)} RPM'),
+                    _Metric('Speed (Reed Switch)', '${Formatters.formatDouble(snap?.rpm ?? 0)} RPM'),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
 
-              // 2. BOGIE / RUNNING GEAR GROUP
+              // 4. HX711 LOAD CELL
               Expanded(
                 child: _buildTelemetryGroupCard(
                   context,
-                  title: '2. BOGIE (IMU #2, DS18B20 #2, REED)',
-                  icon: Icons.subway,
-                  iconColor: Colors.purple,
+                  title: '4. LOAD DYNAMICS (load)',
+                  icon: Icons.scale,
+                  iconColor: Colors.indigo,
                   metrics: [
-                    _Metric('IMU #2 Accel X', '${Formatters.formatDouble(snap?.imu2X ?? 0)} g'),
-                    _Metric('IMU #2 Accel Y', '${Formatters.formatDouble(snap?.imu2Y ?? 0)} g'),
-                    _Metric('IMU #2 Accel Z', '${Formatters.formatDouble(snap?.imu2Z ?? 0)} g'),
-                    _Metric('Bearing/Bogie Temp (DS18B20 #2)', '${Formatters.formatDouble(snap?.bearingBogieTemp ?? 0)} °C'),
-                    _Metric('RPM (Reed Switch)', '${Formatters.formatDouble(snap?.rpm ?? 0)} RPM'),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // 3. LOAD, ENVIRONMENT, POSITION, INSPECTION
-              Expanded(
-                child: Column(
-                  children: [
-                    // 3. LOAD / OPERATING CONDITION
-                    _buildTelemetryGroupCard(
-                      context,
-                      title: '3. LOAD (HX711 + LOAD CELL)',
-                      icon: Icons.scale,
-                      iconColor: Colors.indigo,
-                      metrics: [
-                        _Metric('Load / Weight', '${Formatters.formatDouble(snap?.loadWeight ?? 0)} kg'),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // 4. ENVIRONMENT
-                    _buildTelemetryGroupCard(
-                      context,
-                      title: '4. ENVIRONMENT (DHT11)',
-                      icon: Icons.thermostat,
-                      iconColor: Colors.teal,
-                      metrics: [
-                        _Metric('Ambient Temp', '${Formatters.formatDouble(snap?.ambientTemp ?? 0)} °C'),
-                        _Metric('Humidity', '${Formatters.formatDouble(snap?.humidity ?? 0)} %'),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // 5. POSITION & 6. INSPECTION
-                    _buildTelemetryGroupCard(
-                      context,
-                      title: '5. GPS & 6. IR INSPECTION TRIGGER',
-                      icon: Icons.location_on,
-                      iconColor: Colors.red,
-                      metrics: [
-                        _Metric('GPS Status', snap?.gpsAvailable == true ? 'AVAILABLE' : 'UNAVAILABLE'),
-                        _Metric('GPS Position', snap?.gpsPosition ?? 'N/A'),
-                        _Metric('IR Sensor Trigger', snap?.irDetection == true ? 'DETECTED' : 'NOT DETECTED'),
-                      ],
-                    ),
+                    _Metric('Axle Load / Weight (load)', '${Formatters.formatDouble(snap?.loadWeight ?? 0)} kg'),
                   ],
                 ),
               ),
@@ -198,16 +175,16 @@ class _TrainMonitorPageState extends State<TrainMonitorPage> {
             mainAxisSpacing: 12,
             children: [
               TelemetryChart(
-                title: 'IMU #2 BOGIE Z-ACCELERATION (g)',
+                title: 'IMU Z-AXIS VIBRATION TENSOR (imu_z)',
                 unit: 'g',
                 snapshots: sensorState.historyBuffer,
-                valueExtractor: (s) => s.imu2Z,
+                valueExtractor: (s) => s.imuZ,
                 lineColor: Colors.purple,
                 selectedDurationMinutes: sensorState.chartDurationMinutes,
                 onDurationChanged: (m) => sensorState.setChartDurationMinutes(m),
               ),
               TelemetryChart(
-                title: 'DS18B20 #1 MOTOR TEMP (°C)',
+                title: 'DS18B20 #1 MOTOR TEMP (motor_temperature)',
                 unit: '°C',
                 snapshots: sensorState.historyBuffer,
                 valueExtractor: (s) => s.motorTemp,
@@ -216,7 +193,7 @@ class _TrainMonitorPageState extends State<TrainMonitorPage> {
                 onDurationChanged: (m) => sensorState.setChartDurationMinutes(m),
               ),
               TelemetryChart(
-                title: 'DS18B20 #2 BEARING / BOGIE TEMP (°C)',
+                title: 'DS18B20 #2 BEARING TEMP (bearing_temperature)',
                 unit: '°C',
                 snapshots: sensorState.historyBuffer,
                 valueExtractor: (s) => s.bearingBogieTemp,
@@ -225,7 +202,7 @@ class _TrainMonitorPageState extends State<TrainMonitorPage> {
                 onDurationChanged: (m) => sensorState.setChartDurationMinutes(m),
               ),
               TelemetryChart(
-                title: 'INA219 MOTOR CURRENT (A)',
+                title: 'INA219 MOTOR CURRENT (current)',
                 unit: 'A',
                 snapshots: sensorState.historyBuffer,
                 valueExtractor: (s) => s.current,

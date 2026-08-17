@@ -17,7 +17,7 @@ class AnalyticsPage extends StatefulWidget {
 }
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
-  SensorType _selectedSensor = SensorType.imu2Z;
+  SensorType _selectedSensor = SensorType.imuZ;
 
   @override
   Widget build(BuildContext context) {
@@ -225,49 +225,35 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   String _getSensorLabel(SensorType st) {
     switch (st) {
-      case SensorType.imu1X:
-        return 'IMU #1 Accel X (Motor/Gearbox)';
-      case SensorType.imu1Y:
-        return 'IMU #1 Accel Y (Motor/Gearbox)';
-      case SensorType.imu1Z:
-        return 'IMU #1 Accel Z (Motor/Gearbox)';
-      case SensorType.imu2X:
-        return 'IMU #2 Accel X (Bogie/Running Gear)';
-      case SensorType.imu2Y:
-        return 'IMU #2 Accel Y (Bogie/Running Gear)';
-      case SensorType.imu2Z:
-        return 'IMU #2 Accel Z (Bogie/Running Gear)';
+      case SensorType.imuX:
+        return 'IMU Vibration X Tensor (imu_x)';
+      case SensorType.imuY:
+        return 'IMU Vibration Y Tensor (imu_y)';
+      case SensorType.imuZ:
+        return 'IMU Vibration Z Tensor (imu_z)';
       case SensorType.motorTemp:
-        return 'DS18B20 #1 Motor Temperature';
+        return 'DS18B20 #1 Motor Temp (motor_temperature)';
       case SensorType.bearingBogieTemp:
-        return 'DS18B20 #2 Bearing/Bogie Temp';
+        return 'DS18B20 #2 Bearing Temp (bearing_temperature)';
       case SensorType.rpm:
-        return 'Reed Switch RPM';
+        return 'Reed Switch Speed (rpm)';
       case SensorType.voltage:
-        return 'INA219 Motor Voltage';
+        return 'INA219 Motor Voltage (voltage)';
       case SensorType.current:
-        return 'INA219 Motor Current';
+        return 'INA219 Motor Current (current)';
       case SensorType.loadWeight:
-        return 'HX711 Load / Weight';
-      case SensorType.ambientTemp:
-        return 'DHT11 Ambient Temperature';
-      case SensorType.humidity:
-        return 'DHT11 Humidity';
+        return 'HX711 Load Dynamics (load)';
     }
   }
 
   String _getSensorUnit(SensorType st) {
     switch (st) {
-      case SensorType.imu1X:
-      case SensorType.imu1Y:
-      case SensorType.imu1Z:
-      case SensorType.imu2X:
-      case SensorType.imu2Y:
-      case SensorType.imu2Z:
+      case SensorType.imuX:
+      case SensorType.imuY:
+      case SensorType.imuZ:
         return 'g';
       case SensorType.motorTemp:
       case SensorType.bearingBogieTemp:
-      case SensorType.ambientTemp:
         return '°C';
       case SensorType.voltage:
         return 'V';
@@ -277,25 +263,17 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         return 'RPM';
       case SensorType.loadWeight:
         return 'kg';
-      case SensorType.humidity:
-        return '%';
     }
   }
 
   double _extractVal(TelemetrySnapshot s, SensorType st) {
     switch (st) {
-      case SensorType.imu1X:
-        return s.imu1X;
-      case SensorType.imu1Y:
-        return s.imu1Y;
-      case SensorType.imu1Z:
-        return s.imu1Z;
-      case SensorType.imu2X:
-        return s.imu2X;
-      case SensorType.imu2Y:
-        return s.imu2Y;
-      case SensorType.imu2Z:
-        return s.imu2Z;
+      case SensorType.imuX:
+        return s.imuX;
+      case SensorType.imuY:
+        return s.imuY;
+      case SensorType.imuZ:
+        return s.imuZ;
       case SensorType.motorTemp:
         return s.motorTemp;
       case SensorType.bearingBogieTemp:
@@ -308,10 +286,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         return s.current;
       case SensorType.loadWeight:
         return s.loadWeight;
-      case SensorType.ambientTemp:
-        return s.ambientTemp;
-      case SensorType.humidity:
-        return s.humidity;
     }
   }
 }

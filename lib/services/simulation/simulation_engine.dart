@@ -46,10 +46,6 @@ class SimulationEngine {
 
   TelemetrySnapshot _generateSnapshot() {
     // Default nominal raw values
-    double imu1X = 0.12 + (_random.nextDouble() - 0.5) * 0.05;
-    double imu1Y = 0.08 + (_random.nextDouble() - 0.5) * 0.04;
-    double imu1Z = 0.98 + (_random.nextDouble() - 0.5) * 0.05;
-
     double imu2X = 0.15 + (_random.nextDouble() - 0.5) * 0.06;
     double imu2Y = 0.10 + (_random.nextDouble() - 0.5) * 0.04;
     double imu2Z = 1.02 + (_random.nextDouble() - 0.5) * 0.08;
@@ -62,13 +58,6 @@ class SimulationEngine {
     double current = 12.5 + (_random.nextDouble() - 0.5) * 1.0;
 
     double loadWeight = 450.0 + (_random.nextDouble() - 0.5) * 10.0;
-
-    double ambientTemp = 26.0 + (_random.nextDouble() - 0.5) * 0.5;
-    double humidity = 55.0 + (_random.nextDouble() - 0.5) * 1.0;
-
-    bool irDetection = true;
-    bool gpsAvailable = true;
-    String gpsPos = '12.9716° N, 77.5946° E';
 
     switch (_currentPreset) {
       case SimulationPreset.normal:
@@ -92,7 +81,7 @@ class SimulationEngine {
         final scale = min(1.0, _timeCounter / 40.0);
         motorTemp += 32.0 * scale + _random.nextDouble() * 3.0;
         current += 8.5 * scale;
-        imu1Z += 3.5 * scale;
+        imu2Z += 3.5 * scale;
         rpm += sin(_timeCounter) * 120.0;
         break;
     }
@@ -100,23 +89,15 @@ class SimulationEngine {
     return TelemetrySnapshot(
       timestamp: DateTime.now(),
       trainId: AppConstants.activeTrainId,
-      imu1X: imu1X,
-      imu1Y: imu1Y,
-      imu1Z: imu1Z,
-      imu2X: imu2X,
-      imu2Y: imu2Y,
-      imu2Z: imu2Z,
+      imuX: imu2X,
+      imuY: imu2Y,
+      imuZ: imu2Z,
       motorTemp: motorTemp,
       bearingBogieTemp: bearingBogieTemp,
       rpm: rpm,
       voltage: voltage,
       current: current,
       loadWeight: loadWeight,
-      ambientTemp: ambientTemp,
-      humidity: humidity,
-      irDetection: irDetection,
-      gpsAvailable: gpsAvailable,
-      gpsPosition: gpsPos,
     );
   }
 
