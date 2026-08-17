@@ -4,6 +4,8 @@ import '../../core/constants/app_constants.dart';
 import '../../models/train/component.dart';
 
 class DigitalTrainView extends StatelessWidget {
+  final String? selectedBogieId;
+  final Function(String bogieId)? onBogieSelected;
   final String? selectedComponentId;
   final Function(String componentId) onComponentSelected;
   final Map<String, ComponentStatus> componentStatuses;
@@ -11,6 +13,8 @@ class DigitalTrainView extends StatelessWidget {
 
   const DigitalTrainView({
     super.key,
+    this.selectedBogieId,
+    this.onBogieSelected,
     required this.selectedComponentId,
     required this.onComponentSelected,
     required this.componentStatuses,
@@ -35,7 +39,7 @@ class DigitalTrainView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Default bogie definitions if list not passed
+    // Default bogies definition if list not provided
     final activeBogies = (bogies != null && bogies!.isNotEmpty)
         ? bogies!
         : [
@@ -81,9 +85,12 @@ class DigitalTrainView extends StatelessWidget {
             ),
           ];
 
-    final double bogieSpacing = 160.0;
-    final double startOffset = 70.0;
-    final double canvasWidth = (activeBogies.length * bogieSpacing) + 120.0;
+    // Determine current selected bogie (default to Bogie 3 if fault, or first bogie)
+    final activeBogieId = selectedBogieId ?? AppConstants.compBogie03;
+    final selectedBogieIndex = activeBogies.indexWhere((b) => b.id == activeBogieId);
+    final validIndex = selectedBogieIndex != -1 ? selectedBogieIndex : 0;
+    final selectedBogie = activeBogies[validIndex];
+    final bogieColor = _getStatusColor(selectedBogie.id);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -95,6 +102,7 @@ class DigitalTrainView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header Bar
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -105,7 +113,7 @@ class DigitalTrainView extends StatelessWidget {
                     const Icon(Icons.train, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'DIGITAL TWIN MULTI-BOGIE SCHEMATIC',
+                      'DIGITAL TWIN - BOGIE MONITOR',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -119,7 +127,7 @@ class DigitalTrainView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${activeBogies.length} BOGIES DETECTED',
+                        'EXPRESS R-101 UNIT',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -129,7 +137,7 @@ class DigitalTrainView extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 24),
                 Row(
                   children: [
                     _buildLegendItem('Normal', AppColors.normal),
@@ -144,158 +152,423 @@ class DigitalTrainView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Interactive Multi-Bogie Schematic Canvas Layout
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: canvasWidth < 820 ? 820 : canvasWidth,
-              height: 230,
-              child: Stack(
-                children: [
-                  // Train Main Body Shell across all bogies
-                  Positioned(
-                    left: 50,
-                    top: 20,
-                    width: canvasWidth - 100,
-                    height: 85,
-                    child: _buildInteractiveComponent(
-                      context,
-                      id: AppConstants.compBody,
-                      label: 'TRAIN CAR BODY SHELL & INTEGRATED CHASSIS',
-                      icon: Icons.directions_railway,
-                      height: 85,
-                    ),
-                  ),
-
-                  // Front Coupler
-                  Positioned(
-                    left: 5,
-                    top: 45,
-                    width: 40,
-                    height: 40,
-                    child: _buildInteractiveComponent(
-                      context,
-                      id: AppConstants.compCoupler,
-                      label: 'COUPLER',
-                      height: 40,
-                    ),
-                  ),
-
-                  // Traction Motor 1
-                  Positioned(
-                    left: startOffset + (bogieSpacing * 0.5),
-                    top: 110,
-                    width: 80,
-                    height: 40,
-                    child: _buildInteractiveComponent(
-                      context,
-                      id: AppConstants.compMotor01,
-                      label: 'MOTOR 1',
-                      icon: Icons.electric_bolt,
-                      height: 40,
-                    ),
-                  ),
-
-                  // Traction Motor 2
-                  if (activeBogies.length >= 3)
-                    Positioned(
-                      left: startOffset + (bogieSpacing * 2.5),
-                      top: 110,
-                      width: 80,
-                      height: 40,
-                      child: _buildInteractiveComponent(
-                        context,
-                        id: AppConstants.compMotor02,
-                        label: 'MOTOR 2',
-                        icon: Icons.electric_bolt,
-                        height: 40,
+          // Main Layout: Bogie Selector (Left) + Single Selected Bogie Schematic (Right)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. BOGIE SELECTOR PANEL (Left)
+              SizedBox(
+                width: 175,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'SELECT BOGIE',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        letterSpacing: 0.8,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    ...List.generate(activeBogies.length, (idx) {
+                      final b = activeBogies[idx];
+                      final isSelected = b.id == selectedBogie.id;
+                      final statusColor = _getStatusColor(b.id);
+                      final isFault = b.status == ComponentStatus.fault;
 
-                  // Dynamic Bogies Assembly Rendering (Bogie 1, 2, 3, ... N)
-                  ...List.generate(activeBogies.length, (index) {
-                    final bogie = activeBogies[index];
-                    final leftPos = startOffset + (index * bogieSpacing);
-                    final bogieNum = index + 1;
-                    final axle1Num = (index * 2) + 1;
-                    final axle2Num = (index * 2) + 2;
-
-                    final axle1Id = 'AXLE_${axle1Num.toString().padLeft(2, '0')}';
-                    final axle2Id = 'AXLE_${axle2Num.toString().padLeft(2, '0')}';
-                    final wheel1Id = 'WHEEL_${axle1Num.toString().padLeft(2, '0')}';
-                    final wheel2Id = 'WHEEL_${axle2Num.toString().padLeft(2, '0')}';
-                    final bearing1Id = 'BEARING_${axle1Num.toString().padLeft(2, '0')}';
-                    final bearing2Id = 'BEARING_${axle2Num.toString().padLeft(2, '0')}';
-
-                    final isBogieSelected = selectedComponentId == bogie.id;
-                    final bogieColor = _getStatusColor(bogie.id);
-
-                    return Positioned(
-                      left: leftPos,
-                      top: 115,
-                      width: 145,
-                      height: 100,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: isBogieSelected ? bogieColor.withOpacity(0.25) : theme.colorScheme.surface.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isBogieSelected ? Colors.blue.shade600 : bogieColor,
-                            width: isBogieSelected ? 3 : 2,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () => onComponentSelected(bogie.id),
-                              child: Container(
-                                color: Colors.transparent,
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'BOGIE $bogieNum',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: bogieColor,
-                                      ),
-                                    ),
-                                    Icon(Icons.touch_app, size: 10, color: bogieColor),
-                                  ],
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              if (onBogieSelected != null) {
+                                onBogieSelected!(b.id);
+                              }
+                              onComponentSelected(b.id);
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? (isFault ? Colors.red.shade50 : Colors.blue.shade50)
+                                    : theme.colorScheme.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? (isFault ? Colors.red.shade600 : Colors.blue.shade600)
+                                      : statusColor.withOpacity(0.4),
+                                  width: isSelected ? 2.5 : 1.0,
                                 ),
                               ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: statusColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'BOGIE ${idx + 1}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected
+                                                ? (isFault ? Colors.red.shade900 : Colors.blue.shade900)
+                                                : theme.textTheme.bodyMedium?.color,
+                                          ),
+                                        ),
+                                        Text(
+                                          b.location.toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: 9,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 10,
+                                      color: isFault ? Colors.red.shade800 : Colors.blue.shade800,
+                                    ),
+                                ],
+                              ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              const VerticalDivider(width: 1),
+              const SizedBox(width: 16),
+
+              // 2. SINGLE SELECTED BOGIE SCHEMATIC (Right)
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: bogieColor.withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: bogieColor.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Selected Bogie Header Status Banner
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
                               children: [
-                                _buildWheelAxlePair(
-                                  context,
-                                  axleId: axle1Id,
-                                  wheelId: wheel1Id,
-                                  bearingId: bearing1Id,
-                                  axleName: 'Axle $axle1Num',
+                                Flexible(
+                                  child: Text(
+                                    '${selectedBogie.name.toUpperCase()} SCHEMATIC',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      letterSpacing: 0.5,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                _buildWheelAxlePair(
-                                  context,
-                                  axleId: axle2Id,
-                                  wheelId: wheel2Id,
-                                  bearingId: bearing2Id,
-                                  axleName: 'Axle $axle2Num',
+                                const SizedBox(width: 6),
+                                Text(
+                                  '(${selectedBogie.location})',
+                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: bogieColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: bogieColor),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  selectedBogie.status == ComponentStatus.fault
+                                      ? Icons.warning_amber_rounded
+                                      : Icons.check_circle_outline,
+                                  size: 14,
+                                  color: bogieColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'STATUS: ${selectedBogie.status.name.toUpperCase()}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: bogieColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  }),
+                      const Divider(height: 16),
+
+                      // Detailed Single Bogie Physical Schematic Layout
+                      _buildSingleBogieSchematic(
+                        context,
+                        bogieIndex: validIndex,
+                        bogie: selectedBogie,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSingleBogieSchematic(
+    BuildContext context, {
+    required int bogieIndex,
+    required TrainComponent bogie,
+  }) {
+    final axle1Num = (bogieIndex * 2) + 1;
+    final axle2Num = (bogieIndex * 2) + 2;
+
+    final axle1Id = 'AXLE_${axle1Num.toString().padLeft(2, '0')}';
+    final axle2Id = 'AXLE_${axle2Num.toString().padLeft(2, '0')}';
+    final wheel1Id = 'WHEEL_${axle1Num.toString().padLeft(2, '0')}';
+    final wheel2Id = 'WHEEL_${axle2Num.toString().padLeft(2, '0')}';
+    final bearing1Id = 'BEARING_${axle1Num.toString().padLeft(2, '0')}';
+    final bearing2Id = 'BEARING_${axle2Num.toString().padLeft(2, '0')}';
+
+    final motorId = bogieIndex < 2 ? AppConstants.compMotor01 : AppConstants.compMotor02;
+    final motorLabel = bogieIndex < 2 ? 'TRACTION MOTOR 1' : 'TRACTION MOTOR 2';
+
+    return Column(
+      children: [
+        // Top Row: Axle Assemblies (Axle 1 & Axle 2 of this Bogie)
+        Row(
+          children: [
+            Expanded(
+              child: _buildAxleAssembly(
+                context,
+                axleId: axle1Id,
+                wheelId: wheel1Id,
+                bearingId: bearing1Id,
+                axleTitle: 'AXLE $axle1Num (FRONT)',
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildAxleAssembly(
+                context,
+                axleId: axle2Id,
+                wheelId: wheel2Id,
+                bearingId: bearing2Id,
+                axleTitle: 'AXLE $axle2Num (REAR)',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Bottom Row: Traction Motor, Suspension, Brake Units
+        Row(
+          children: [
+            Expanded(
+              flex: 5,
+              child: _buildInteractiveComponent(
+                context,
+                id: motorId,
+                label: motorLabel,
+                icon: Icons.electric_bolt,
+                height: 48,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 4,
+              child: _buildInteractiveComponent(
+                context,
+                id: AppConstants.compSuspension,
+                label: 'PRIMARY SUSPENSION',
+                icon: Icons.compress,
+                height: 48,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 4,
+              child: _buildInteractiveComponent(
+                context,
+                id: AppConstants.compBrake,
+                label: 'BRAKE UNIT',
+                icon: Icons.speed,
+                height: 48,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAxleAssembly(
+    BuildContext context, {
+    required String axleId,
+    required String wheelId,
+    required String bearingId,
+    required String axleTitle,
+  }) {
+    final theme = Theme.of(context);
+    final axleColor = _getStatusColor(axleId);
+    final wheelColor = _getStatusColor(wheelId);
+    final bearingColor = _getStatusColor(bearingId);
+
+    final isAxleSelected = selectedComponentId == axleId;
+    final isWheelSelected = selectedComponentId == wheelId;
+    final isBearingSelected = selectedComponentId == bearingId;
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        children: [
+          // Axle Header Clickable Bar
+          InkWell(
+            onTap: () => onComponentSelected(axleId),
+            borderRadius: BorderRadius.circular(4),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isAxleSelected ? axleColor.withOpacity(0.25) : axleColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: isAxleSelected ? Colors.blue.shade600 : axleColor,
+                  width: isAxleSelected ? 2.0 : 1.0,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    axleTitle,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: axleColor,
+                    ),
+                  ),
+                  Icon(Icons.crop_16_9, size: 12, color: axleColor),
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 8),
+
+          // Wheel & Bearing Components
+          Row(
+            children: [
+              // Wheel Component
+              Expanded(
+                child: InkWell(
+                  onTap: () => onComponentSelected(wheelId),
+                  borderRadius: BorderRadius.circular(6),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isWheelSelected ? wheelColor.withOpacity(0.3) : wheelColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isWheelSelected ? Colors.blue.shade600 : wheelColor,
+                        width: isWheelSelected ? 2.5 : 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(Icons.tire_repair, size: 14, color: wheelColor),
+                        const SizedBox(height: 2),
+                        Text(
+                          'WHEEL',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: isWheelSelected ? FontWeight.bold : FontWeight.w600,
+                            color: wheelColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Journal Bearing Component
+              Expanded(
+                child: InkWell(
+                  onTap: () => onComponentSelected(bearingId),
+                  borderRadius: BorderRadius.circular(6),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isBearingSelected ? bearingColor.withOpacity(0.35) : bearingColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isBearingSelected ? Colors.blue.shade600 : bearingColor,
+                        width: isBearingSelected ? 2.5 : 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          bearingColor == AppColors.fault ? Icons.warning : Icons.adjust,
+                          size: 14,
+                          color: bearingColor,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'BEARING',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: isBearingSelected ? FontWeight.bold : FontWeight.w600,
+                            color: bearingColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -317,7 +590,7 @@ class DigitalTrainView extends StatelessWidget {
     required String id,
     required String label,
     IconData? icon,
-    double height = 50,
+    double height = 48,
   }) {
     final isSelected = selectedComponentId == id;
     final color = _getStatusColor(id);
@@ -333,7 +606,7 @@ class DigitalTrainView extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: isSelected ? Colors.blue.shade600 : color,
-            width: isSelected ? 3 : 1.5,
+            width: isSelected ? 2.5 : 1.5,
           ),
         ),
         child: Center(
@@ -362,60 +635,5 @@ class DigitalTrainView extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildWheelAxlePair(
-    BuildContext context, {
-    required String axleId,
-    required String wheelId,
-    required String bearingId,
-    required String axleName,
-  }) {
-    final isWheelSelected = selectedComponentId == wheelId;
-    final isBearingSelected = selectedComponentId == bearingId;
-
-    return Column(
-      children: [
-        // Wheel Component
-        InkWell(
-          onTap: () => onComponentSelected(wheelId),
-          child: Container(
-            width: 42,
-            height: 22,
-            decoration: BoxDecoration(
-              color: _getStatusColor(wheelId).withOpacity(0.2),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: isWheelSelected ? Colors.blue.shade600 : _getStatusColor(wheelId),
-                width: isWheelSelected ? 2.5 : 1.5,
-              ),
-            ),
-            child: const Center(
-              child: Text('WHEEL', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ),
-        const SizedBox(height: 2),
-        // Bearing Component
-        InkWell(
-          onTap: () => onComponentSelected(bearingId),
-          child: Container(
-            width: 50,
-            height: 26,
-            decoration: BoxDecoration(
-              color: _getStatusColor(bearingId).withOpacity(0.25),
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(
-                color: isBearingSelected ? Colors.blue.shade600 : _getStatusColor(bearingId),
-                width: isBearingSelected ? 2.5 : 1.5,
-              ),
-            ),
-            child: const Center(
-              child: Text('BEARING', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
+

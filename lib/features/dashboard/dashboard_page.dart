@@ -111,6 +111,8 @@ class DashboardPage extends StatelessWidget {
                 child: Column(
                   children: [
                     DigitalTrainView(
+                      selectedBogieId: appState.selectedBogieId,
+                      onBogieSelected: (bogieId) => appState.selectBogie(bogieId),
                       selectedComponentId: selectedCompId,
                       onComponentSelected: (compId) => appState.selectComponent(compId),
                       componentStatuses: statusMap,
