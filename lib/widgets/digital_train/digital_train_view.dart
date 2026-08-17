@@ -158,17 +158,26 @@ class DigitalTrainView extends StatelessWidget {
             children: [
               // 1. BOGIE SELECTOR PANEL (Left)
               SizedBox(
-                width: 175,
+                width: 200,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'SELECT BOGIE',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        letterSpacing: 0.8,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'BOGIE LIST',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        Text(
+                          '${activeBogies.length} UNITS',
+                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     ...List.generate(activeBogies.length, (idx) {
@@ -176,6 +185,10 @@ class DigitalTrainView extends StatelessWidget {
                       final isSelected = b.id == selectedBogie.id;
                       final statusColor = _getStatusColor(b.id);
                       final isFault = b.status == ComponentStatus.fault;
+
+                      final axle1Num = (idx * 2) + 1;
+                      final axle2Num = (idx * 2) + 2;
+                      final motorName = idx < 2 ? 'Motor 1' : 'Motor 2';
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -191,7 +204,7 @@ class DigitalTrainView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? (isFault ? Colors.red.shade50 : Colors.blue.shade50)
@@ -204,47 +217,65 @@ class DigitalTrainView extends StatelessWidget {
                                   width: isSelected ? 2.5 : 1.0,
                                 ),
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      color: statusColor,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'BOGIE ${idx + 1}',
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 10,
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          color: statusColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'BOGIE ${idx + 1} (${b.location.toUpperCase()})',
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             fontWeight: FontWeight.bold,
                                             color: isSelected
                                                 ? (isFault ? Colors.red.shade900 : Colors.blue.shade900)
                                                 : theme.textTheme.bodyMedium?.color,
                                           ),
                                         ),
-                                        Text(
-                                          b.location.toUpperCase(),
-                                          style: const TextStyle(
-                                            fontSize: 9,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      if (isFault)
+                                        const Icon(Icons.warning, size: 12, color: Colors.red),
+                                    ],
                                   ),
-                                  if (isSelected)
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 10,
-                                      color: isFault ? Colors.red.shade800 : Colors.blue.shade800,
-                                    ),
+                                  const SizedBox(height: 6),
+
+                                  // Sub-component Quick Breakdown Tags
+                                  Wrap(
+                                    spacing: 4,
+                                    runSpacing: 4,
+                                    children: [
+                                      _buildComponentTag(
+                                        'Axle $axle1Num, $axle2Num',
+                                        Colors.grey.shade700,
+                                        Colors.grey.shade100,
+                                      ),
+                                      _buildComponentTag(
+                                        '4 Wheels',
+                                        Colors.blue.shade800,
+                                        Colors.blue.shade50,
+                                      ),
+                                      _buildComponentTag(
+                                        isFault ? 'Bearing 6 FAULT' : '4 Bearings',
+                                        isFault ? Colors.red.shade800 : Colors.teal.shade800,
+                                        isFault ? Colors.red.shade100 : Colors.teal.shade50,
+                                      ),
+                                      _buildComponentTag(
+                                        motorName,
+                                        Colors.amber.shade900,
+                                        Colors.amber.shade50,
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
@@ -255,9 +286,9 @@ class DigitalTrainView extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               const VerticalDivider(width: 1),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
 
               // 2. SINGLE SELECTED BOGIE SCHEMATIC (Right)
               Expanded(
@@ -582,6 +613,24 @@ class DigitalTrainView extends StatelessWidget {
         const SizedBox(width: 4),
         Text(label, style: const TextStyle(fontSize: 11)),
       ],
+    );
+  }
+
+  Widget _buildComponentTag(String label, Color textColor, Color bgColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 8.5,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      ),
     );
   }
 
