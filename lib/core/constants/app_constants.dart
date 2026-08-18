@@ -62,6 +62,7 @@ class AppConstants {
 enum AppRoute {
   dashboard,
   trainMonitor,
+  vibrationMonitor,   // NEW – real MQTT vibration feed
   faultDetection,
   inspection,
   analytics,
@@ -79,6 +80,8 @@ extension AppRouteExtension on AppRoute {
         return 'Dashboard';
       case AppRoute.trainMonitor:
         return 'Train Monitor';
+      case AppRoute.vibrationMonitor:
+        return 'Vibration Monitor';
       case AppRoute.faultDetection:
         return 'Fault Detection';
       case AppRoute.inspection:

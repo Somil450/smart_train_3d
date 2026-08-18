@@ -70,6 +70,7 @@ class SidebarNavigation extends StatelessWidget {
 
                 _buildGroupHeader(context, 'MONITORING & AI'),
                 _buildNavItem(context, AppRoute.trainMonitor, Icons.monitor_heart_outlined, Icons.monitor_heart),
+                _buildNavItem(context, AppRoute.vibrationMonitor, Icons.sensors_outlined, Icons.sensors),
                 _buildNavItem(context, AppRoute.faultDetection, Icons.error_outline, Icons.error),
                 _buildNavItem(context, AppRoute.inspection, Icons.camera_alt_outlined, Icons.camera_alt),
                 const SizedBox(height: 12),

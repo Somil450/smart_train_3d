@@ -321,10 +321,12 @@ class DigitalTrainView extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 6),
-                                Text(
-                                  '(${selectedBogie.location})',
-                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
-                                  overflow: TextOverflow.ellipsis,
+                                Flexible(
+                                  child: Text(
+                                    '(${selectedBogie.location})',
+                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ],
                             ),
@@ -509,12 +511,15 @@ class DigitalTrainView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    axleTitle,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: axleColor,
+                  Expanded(
+                    child: Text(
+                      axleTitle,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: axleColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Icon(Icons.crop_16_9, size: 12, color: axleColor),

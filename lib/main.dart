@@ -35,8 +35,11 @@ import 'features/maintenance/maintenance_page.dart';
 import 'features/experiment_lab/experiment_lab_page.dart';
 import 'features/history/history_page.dart';
 import 'features/settings/settings_page.dart';
+import 'features/vibration_monitor/vibration_monitor_page.dart';
+import 'services/mqtt/mqtt_service.dart';
+import 'state/mqtt_vibration_notifier.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Instantiate Repositories
@@ -47,6 +50,11 @@ void main() {
   final maintenanceRepository = MockMaintenanceRepository();
   final experimentRepository = MockExperimentRepository();
   final historyRepository = MockHistoryRepository();
+
+  // MQTT vibration service
+  final mqttService = MqttService();
+  final mqttVibrationNotifier = MqttVibrationNotifier(mqttService);
+  await mqttVibrationNotifier.init();
 
   // Instantiate Simulation Engine
   final simulationEngine = SimulationEngine();
@@ -62,6 +70,7 @@ void main() {
         Provider<ExperimentRepository>.value(value: experimentRepository),
         Provider<HistoryRepository>.value(value: historyRepository),
         Provider<SimulationEngine>.value(value: simulationEngine),
+        ChangeNotifierProvider.value(value: mqttVibrationNotifier),
 
         ChangeNotifierProvider(create: (_) => AppStateNotifier()),
         ChangeNotifierProvider(create: (_) => TrainStateNotifier(trainRepository)),
@@ -150,6 +159,9 @@ class MainRouterShell extends StatelessWidget {
         break;
       case AppRoute.trainMonitor:
         pageBody = const TrainMonitorPage();
+        break;
+      case AppRoute.vibrationMonitor:
+        pageBody = const VibrationMonitorPage();
         break;
       case AppRoute.faultDetection:
         pageBody = const FaultDetectionPage();

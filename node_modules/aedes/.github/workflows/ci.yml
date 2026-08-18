@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+            persist-credentials: false
+
+        - name: Dependency review
+          uses: actions/dependency-review-action@v4
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [ 20, 22, 24]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          check-latest: true
+          cache: npm
+          cache-dependency-path: package.json
+
+      - name: Install
+        run: |
+          npm install --ignore-scripts
+
+      - name: Check licenses
+        run: |
+          npm run license-checker
+
+      - name: Run tests
+        run: |
+          npm run test:ci
+      
+      - name: Upload coverage reports to Codecov
+        # only let the first job upload coverage info
+        if: strategy.job-index == 0
+        uses: codecov/codecov-action@v5
+        with:
+          directory: coverage
+          fail_ci_if_error: true
+          flags: unittests
+          name: codecov-aedes
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
