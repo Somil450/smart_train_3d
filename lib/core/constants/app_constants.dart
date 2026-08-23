@@ -1,6 +1,6 @@
 class AppConstants {
-  static const String appName = 'SmartRail AI';
-  static const String appSubTitle = 'Condition Monitoring & Predictive Maintenance';
+  static const String appName = 'RAIL P.R.O.M.I.S';
+  static const String appSubTitle = 'PREDICTIVE ROLLING STOCK OPERATIONS AND MAINTAINANCE INTELLIGENCE SYSTEM';
 
   // Default Endpoints — Node.js proxy at localhost bridges to ESP32 at 10.89.142.193
   static const String defaultBackendUrl = 'http://localhost:8000';
@@ -60,8 +60,10 @@ class AppConstants {
 
 enum AppRoute {
   dashboard,
+  fleetDemo,          // NEW - Multi-train risk demo
   trainMonitor,
   vibrationMonitor,   // NEW – real MQTT vibration feed
+  serviceStations,    // NEW - live map and stations
   faultDetection,
   analytics,
   aiInsights,
@@ -71,15 +73,20 @@ enum AppRoute {
   settings,
 }
 
+
 extension AppRouteExtension on AppRoute {
   String get title {
     switch (this) {
       case AppRoute.dashboard:
         return 'Dashboard';
+      case AppRoute.fleetDemo:
+        return 'Fleet Risk Demo';
       case AppRoute.trainMonitor:
         return 'Train Monitor';
       case AppRoute.vibrationMonitor:
         return 'Vibration Monitor';
+      case AppRoute.serviceStations:
+        return 'Service Stations';
       case AppRoute.faultDetection:
         return 'Fault Detection';
       case AppRoute.analytics:

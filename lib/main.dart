@@ -33,6 +33,8 @@ import 'features/experiment_lab/experiment_lab_page.dart';
 import 'features/history/history_page.dart';
 import 'features/settings/settings_page.dart';
 import 'features/vibration_monitor/vibration_monitor_page.dart';
+import 'features/service_stations/service_stations_page.dart';
+import 'features/fleet_demo/fleet_demo_page.dart';
 import 'services/mqtt/mqtt_service.dart';
 import 'state/mqtt_vibration_notifier.dart';
 
@@ -150,11 +152,17 @@ class MainRouterShell extends StatelessWidget {
       case AppRoute.dashboard:
         pageBody = const DashboardPage();
         break;
+      case AppRoute.fleetDemo:
+        pageBody = const FleetDemoPage();
+        break;
       case AppRoute.trainMonitor:
         pageBody = const TrainMonitorPage();
         break;
       case AppRoute.vibrationMonitor:
         pageBody = const VibrationMonitorPage();
+        break;
+      case AppRoute.serviceStations:
+        pageBody = const ServiceStationsPage();
         break;
       case AppRoute.faultDetection:
         pageBody = const FaultDetectionPage();

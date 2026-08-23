@@ -36,6 +36,15 @@ class MqttVibrationNotifier extends ChangeNotifier {
   bool get motor2Alert => _motor2Latest?.alert ?? false;
   bool get anyAlert    => motor1Alert || motor2Alert;
 
+  double _gpsLat = 0.0;
+  double _gpsLng = 0.0;
+  int _gpsSats = 0;
+
+  double get gpsLat => _gpsLat;
+  double get gpsLng => _gpsLng;
+  int get gpsSats => _gpsSats;
+
+
   Future<void> init() async {
     _setConnectionState(AppMqttConnectionState.connecting);
     _connect();
@@ -105,6 +114,10 @@ class MqttVibrationNotifier extends ChangeNotifier {
 
       _motor2Temp       = (data['m2_t'] as num?)?.toDouble() ?? _motor2Temp;
       _motor2TempStatus = (data['m2_ts'] as String?) ?? _motor2TempStatus;
+
+      _gpsLat = (data['lat'] as num?)?.toDouble() ?? _gpsLat;
+      _gpsLng = (data['lng'] as num?)?.toDouble() ?? _gpsLng;
+      _gpsSats = (data['sats'] as num?)?.toInt() ?? _gpsSats;
 
       final now = DateTime.now();
       final p1 = MotorVibrationPayload(motor: 1, ax: ax1, ay: ay1, az: az1, vibe: v1, alert: v1 > kVibrationThreshold, timestamp: now);

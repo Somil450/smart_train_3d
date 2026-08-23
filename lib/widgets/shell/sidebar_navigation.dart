@@ -49,8 +49,8 @@ class SidebarNavigation extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Condition Monitoring',
-                        style: theme.textTheme.labelSmall,
+                        AppConstants.appSubTitle,
+                        style: theme.textTheme.labelSmall?.copyWith(fontSize: 8),
                       ),
                     ],
                   ),
@@ -68,6 +68,10 @@ class SidebarNavigation extends StatelessWidget {
                 _buildNavItem(context, AppRoute.dashboard, Icons.dashboard_outlined, Icons.dashboard),
                 const SizedBox(height: 12),
 
+                _buildGroupHeader(context, 'DEMO SHOWCASE'),
+                _buildNavItem(context, AppRoute.fleetDemo, Icons.train_outlined, Icons.train),
+                const SizedBox(height: 12),
+
                 _buildGroupHeader(context, 'MONITORING & AI'),
                 _buildNavItem(context, AppRoute.trainMonitor, Icons.monitor_heart_outlined, Icons.monitor_heart),
                 _buildNavItem(context, AppRoute.vibrationMonitor, Icons.sensors_outlined, Icons.sensors),
@@ -81,6 +85,7 @@ class SidebarNavigation extends StatelessWidget {
 
                 _buildGroupHeader(context, 'OPERATIONS'),
                 _buildNavItem(context, AppRoute.maintenance, Icons.build_outlined, Icons.build),
+                _buildNavItem(context, AppRoute.serviceStations, Icons.map_outlined, Icons.map),
                 _buildNavItem(context, AppRoute.experimentLab, Icons.science_outlined, Icons.science),
                 _buildNavItem(context, AppRoute.history, Icons.history_outlined, Icons.history),
                 const SizedBox(height: 12),
